@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {topics,generate,correct} from '../src/content.js';
+test('Все темы генерируют проверяемые задания с объяснениями',()=>{for(const t of topics)for(let i=0;i<200;i++){const q=generate(t.id);assert.ok(q.text);assert.equal(q.steps.length,3);assert.ok(correct(q,String(q.answer)));assert.ok(!correct(q,''));assert.ok(!correct(q,'NaN'));assert.ok(!correct(q,String(q.answer)+'xyz'));if(typeof q.answer==='number'){assert.ok(q.answer>=0&&q.answer<=1000);assert.ok(Number.isInteger(q.answer));}}});
+test('Табличное умножение и деление связаны обратной проверкой',()=>{for(let a=1;a<=10;a++)for(let b=2;b<=9;b++){const rng=()=>(b-2+.01)/8;assert.equal(generate('mul',rng,{factor:a}).answer,a*b);assert.equal(generate('div',rng,{factor:a}).answer,b);}});
+test('Остаток не меньше нуля и меньше делителя',()=>{for(let i=0;i<500;i++){const q=generate('remainder');const [dividend,divisor]=q.text.match(/\d+/g).map(Number);const [quotient,remainder]=q.answer.split(' ').map(Number);assert.equal(quotient*divisor+remainder,dividend);assert.ok(remainder>0&&remainder<divisor);}});
+test('Ответы не принимают пустые строки, экспоненты, хвосты и неверные форматы',()=>{const q={answer:12};for(const a of ['',' ','12abc','1.2e1','0xC','-12','12.0'])assert.equal(correct(q,a),false);assert.equal(correct(q,' 12 '),true);assert.equal(correct({answer:'9:05',time:true},'09:05'),true);assert.equal(correct({answer:'9:05',time:true},'9:5'),false);assert.equal(correct({answer:'3 2',pair:true},'3   2'),true);});
